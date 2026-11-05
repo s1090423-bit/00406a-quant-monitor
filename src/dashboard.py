@@ -30,6 +30,15 @@ def render(signal, research, prices=None):
         pts=" ".join(f"{i*760/(len(vals)-1):.1f},{190-(v-low)/spread*160:.1f}" for i,v in enumerate(vals))
         chart=f"<svg viewBox='0 0 760 220' role='img' aria-label='最近100根K棒收盤價格走勢' style='width:100%;height:auto'><line x1='0' y1='200' x2='760' y2='200' stroke='#dce5f0'/><polyline fill='none' stroke='#1355a2' stroke-width='3' points='{pts}'/></svg><p class='muted'>圖表範圍：{low:.2f}–{high:.2f} 元；最近 {len(vals)} 根30分鐘K棒。非即時報價。</p>"
     price=signal.get("price")
+    market=signal.get("market_trend")
+    market_name={"up":"偏多（收盤高於10與25期均線）","down":"偏空（收盤低於10與25期均線）","flat":"盤整（均線條件未一致）"}.get(market,"無法確認（來源可能延遲）")
+    market_state="已取得" if market else "待更新"
+    latest_nav="7.88 元（2026/11/04）"
+    nav_reference="https://www.ctbcinvestments.com/Etf/00682450/Info"
+    nav_date="2026/11/04（歷史參考，非今日即時值）"
+    bars_count=len(prices) if prices is not None else 0
+    last_bar=prices.timestamp.iloc[-1].strftime("%Y/%m/%d %H:%M UTC") if bars_count else "未下載"
+    volume=int(prices.volume.iloc[-1]) if bars_count else None
     margin=signal.get("margin",{}).get("maintenance_pct")
     loan=signal.get("loan_assumption")
     shares=30000
@@ -120,7 +129,20 @@ html{{scroll-behavior:smooth}}
 </div><p>研究樣本：{esc(research.get("bars","—"))} 根30分鐘K棒；策略成交：{esc(research.get("trade_count","—"))} 次；新增股數：{esc(research.get("shares_added","—"))} 股。</p>
 <p class="muted">{esc(disclaimer)}</p></section>
 <div class="sectionlabel">05 / 資料與可信度</div>
-<section id="data" class="card"><h2>資料完整性</h2><table><tbody><tr><td>市場價格K棒</td><td>已取得，需檢查延遲</td></tr><tr><td>基金淨值及折溢價</td><td>尚未整合</td></tr><tr><td>大盤趨勢</td><td>{esc(signal.get("market_trend") or "資料缺失／時間過舊")}</td></tr><tr><td>券商實際維持率</td><td>尚未連接</td></tr><tr><td>樣本外回測</td><td>尚未驗證</td></tr></tbody></table></section>
+<section id="data" class="card"><h2>資料完整性與來源</h2>
+<p class="muted">以下每個數值都附來源與時間；缺少時間一致性的資料不會納入買進評分。</p>
+<table><thead><tr><th>資料項目</th><th>目前數值 / 狀態</th><th>來源及時間</th></tr></thead><tbody>
+<tr><td>00406A 最近K棒收盤價</td><td><b>{num(price)} 元</b></td><td>Yahoo Finance；{esc(local)} 台灣時間</td></tr>
+<tr><td>最近K棒成交量</td><td><b>{num(volume,0) if volume is not None else "尚無資料"} 股</b></td><td>Yahoo Finance；同一根30分鐘K棒</td></tr>
+<tr><td>已載入歷史K棒</td><td><b>{bars_count} 根</b></td><td>Yahoo Finance；最新 {esc(last_bar)}</td></tr>
+<tr><td>台灣加權指數趨勢</td><td><b>{esc(market_name)}</b></td><td>Yahoo Finance ^TWII；{esc(market_state)}，需對齊ETF時間</td></tr>
+<tr><td>基金歷史參考淨值</td><td><b>{latest_nav}</b></td><td>{nav_date}；<a href="{nav_reference}" target="_blank" rel="noopener noreferrer">中國信託投信官方入口</a></td></tr>
+<tr><td>今日可用的同日正式淨值</td><td><b>尚未取得</b></td><td>不可拿11/4歷史淨值冒充當日淨值</td></tr>
+<tr><td>同日折溢價</td><td><b>未計算</b></td><td>需同日市價與淨值；<a href="https://www.twse.com.tw/zh/ETFortune/etfInfo/00406A" target="_blank" rel="noopener noreferrer">證交所官方ETF資料</a></td></tr>
+<tr><td>券商實際維持率</td><td><b>尚未連接</b></td><td>上方百分比僅按持股及借款假設估算</td></tr>
+<tr><td>樣本外與含息回測</td><td><b>尚未通過</b></td><td>目前只有價格型研究，不含股息及真實券商交易成本</td></tr>
+</tbody></table>
+<div class="alert-note">資料用途：歷史淨值僅供核對，不會注入即時買進評分。只有通過時效檢查的資料才能進入策略判斷。</div></section>
 <section class="card"><details><summary>查看原始量化資料（進階）</summary><h2>訊號 JSON</h2><pre>{esc(json.dumps(signal,ensure_ascii=False,indent=2))}</pre><h2>研究 JSON</h2><pre>{esc(json.dumps(research,ensure_ascii=False,indent=2))}</pre></details></section>
 <p class="footer">本HTML為單次報告快照，不會自動刷新；使用本機監控服務時，瀏覽器每5分鐘檢查最新成功報告。非交易所即時報價。投資決策請以券商與官方資料為準。</p>
 </main></body></html>"""
