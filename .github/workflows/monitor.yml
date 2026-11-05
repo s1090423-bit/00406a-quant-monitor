@@ -26,9 +26,12 @@ jobs:
           cat output/latest.json
       - name: Price-only research comparison (not a trade signal)
         run: python src/research.py --prices data/prices.csv > output/research.json
+      - name: Build Traditional Chinese mobile dashboard
+        run: python src/dashboard.py --signal output/latest.json --research output/research.json --output output/dashboard.html
       - uses: actions/upload-artifact@v4
         with:
           name: signal-${{ github.run_id }}
           path: |
             output/latest.json
             output/research.json
+            output/dashboard.html

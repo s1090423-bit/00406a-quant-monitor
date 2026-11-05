@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 data/prices.csv
 output/latest.json
+output/dashboard.html
+output/research.json
