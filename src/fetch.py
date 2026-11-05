@@ -10,5 +10,6 @@ if raw.empty: sys.exit(f'NO_DATA: {symbol} unavailable from Yahoo; do not issue 
 if isinstance(raw.columns,pd.MultiIndex): raw.columns=raw.columns.get_level_values(0)
 raw=raw.reset_index().rename(columns={'Datetime':'timestamp','Date':'timestamp','Open':'open','High':'high','Low':'low','Close':'close','Volume':'volume'})
 raw['timestamp']=pd.to_datetime(raw['timestamp'],utc=True)
+(BASE/'data').mkdir(parents=True,exist_ok=True)
 raw[['timestamp','open','high','low','close','volume']].to_csv(BASE/'data'/'prices.csv',index=False)
 print('Downloaded',len(raw),'bars; latest',raw.timestamp.iloc[-1]); print('Source: Yahoo Finance via yfinance; verify quote delay and ticker coverage')
