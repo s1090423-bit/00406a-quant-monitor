@@ -77,6 +77,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self,*args): pass
 
 if __name__=="__main__":
-    server=http.server.ThreadingHTTPServer(("127.0.0.1",8765),Handler)
-    print("Dashboard: http://127.0.0.1:8765",flush=True)
+    server=http.server.ThreadingHTTPServer(("127.0.0.1",18765),Handler)
+    print("Dashboard: http://127.0.0.1:18765",flush=True)
     server.serve_forever()
