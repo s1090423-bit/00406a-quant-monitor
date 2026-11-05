@@ -5,3 +5,5 @@ data/prices.csv
 output/latest.json
 output/dashboard.html
 output/research.json
+
+output/

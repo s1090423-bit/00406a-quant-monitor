@@ -21,7 +21,14 @@ def num(value, decimals=2):
     return "尚無資料" if value is None else f"{float(value):,.{decimals}f}"
 def esc(value):
     return html.escape(str(value),quote=True)
-def render(signal, research):
+def render(signal, research, prices=None):
+    chart="<p class=muted>價格歷史圖表資料尚未取得。</p>"
+    if prices is not None and len(prices)>2:
+        rows=prices.tail(100)
+        vals=[float(v) for v in rows.close]
+        low=min(vals); high=max(vals); spread=max(high-low,0.01)
+        pts=" ".join(f"{i*760/(len(vals)-1):.1f},{190-(v-low)/spread*160:.1f}" for i,v in enumerate(vals))
+        chart=f"<svg viewBox='0 0 760 220' role='img' aria-label='最近100根K棒收盤價格走勢' style='width:100%;height:auto'><line x1='0' y1='200' x2='760' y2='200' stroke='#dce5f0'/><polyline fill='none' stroke='#1355a2' stroke-width='3' points='{pts}'/></svg><p class='muted'>圖表範圍：{low:.2f}–{high:.2f} 元；最近 {len(vals)} 根30分鐘K棒。非即時報價。</p>"
     price=signal.get("price")
     margin=signal.get("margin",{}).get("maintenance_pct")
     loan=signal.get("loan_assumption")
@@ -64,6 +71,7 @@ details summary{{cursor:pointer;color:var(--blue);font-weight:650}}pre{{white-sp
 <section class="card"><small>估算融資維持率</small><div class="kpi danger">{num(margin)}%</div><small>以30,000股、借款{num(loan,0)}元估算，非券商正式數字</small></section>
 <section class="card"><small>量化評分</small><div class="kpi">{num(signal.get("score"),0)}</div><small>資料不足時不計分，不是0分</small></section>
 </div>
+<section class="card"><h2>價格走勢</h2>{chart}</section>
 <div class="split">
 <section class="card"><h2>為什麼暫停買進？</h2><ul>{reasons}</ul></section>
 <section class="card"><h2>融資安全距離</h2><p>策略防護線 150% 對應股價約 <b>{num(threshold150)} 元</b></p><p>130% 參考線對應股價約 <b>{num(threshold130)} 元</b></p>
@@ -89,12 +97,17 @@ def main():
     ap.add_argument("--signal",required=True)
     ap.add_argument("--research",required=True)
     ap.add_argument("--output",required=True)
+    ap.add_argument("--prices")
     args=ap.parse_args()
     signal=json.loads(Path(args.signal).read_text(encoding="utf-8"))
     research=json.loads(Path(args.research).read_text(encoding="utf-8"))
     path=Path(args.output)
     path.parent.mkdir(parents=True,exist_ok=True)
-    path.write_text(render(signal,research),encoding="utf-8")
+    prices=None
+    if args.prices:
+        from engine import load_prices
+        prices=load_prices(args.prices)
+    path.write_text(render(signal,research,prices),encoding="utf-8")
     print("HTML dashboard created:",path)
 if __name__=="__main__":
     main()

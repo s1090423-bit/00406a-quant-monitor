@@ -42,3 +42,9 @@ Create a private repository, upload these files, enable Actions, and manually tr
 - Scoring weights are uncalibrated heuristic rules. Insufficient data, stale data, absent NAV, absent market trend, weak margin or insufficient reserve blocks buying.
 - GitHub Actions is a best-effort scheduler, **not a guaranteed 30-minute execution service**. Use a paid managed scheduler if hard timing is required.
 - No historical performance, win rate or expected return is claimed.
+
+## 中文儀表板（Mac 本機）
+
+在 Mac 啟動 `python3 src/local_dashboard.py`，瀏覽器開啟 `http://127.0.0.1:8765`。服務只監聽本機，利用已授權的 GitHub CLI 每5分鐘檢查最新一次成功的 GitHub Actions 報告。瀏覽器每5分鐘重新整理。電腦關機、休眠或服務停止時不會更新；GitHub排程也可能延遲。這不是公開網站，不能直接在外網手機連入。
+
+目前沒有可驗證的時間對齊 iNAV、完整股息調整與券商實際擔保品資料；策略仍是研究用途，不能宣稱已通過樣本外驗證或可自動交易。歷史價格型研究有0筆成交時，0%報酬不是策略勝率或優勢證明。
