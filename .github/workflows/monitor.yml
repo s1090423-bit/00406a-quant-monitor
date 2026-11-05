@@ -19,10 +19,12 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Fetch market bars
         run: python src/fetch.py
-      - name: Evaluate (fail closed without point-in-time NAV and market data)
+      - name: Fetch independent Taiwan market context
+        run: python src/market.py
+      - name: Evaluate (fail closed without point-in-time NAV)
         run: |
           mkdir -p output
-          python src/engine.py --mode signal --prices data/prices.csv > output/latest.json
+          python src/run_signal.py > output/latest.json
           cat output/latest.json
       - name: Price-only research comparison (not a trade signal)
         run: python src/research.py --prices data/prices.csv > output/research.json
@@ -36,3 +38,4 @@ jobs:
             output/research.json
             output/dashboard.html
             data/prices.csv
+            data/market.csv

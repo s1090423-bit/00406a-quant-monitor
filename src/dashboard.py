@@ -88,7 +88,7 @@ details summary{{cursor:pointer;color:var(--blue);font-weight:650}}pre{{white-sp
 <div><small>策略最大回撤</small><div class="kpi">{num(rs.get("max_drawdown_pct"))}%</div></div>
 </div><p>研究樣本：{esc(research.get("bars","—"))} 根30分鐘K棒；策略成交：{esc(research.get("trade_count","—"))} 次；新增股數：{esc(research.get("shares_added","—"))} 股。</p>
 <p class="muted">{esc(disclaimer)}</p></section>
-<section class="card"><h2>資料完整性</h2><table><tbody><tr><td>市場價格K棒</td><td>已取得，需檢查延遲</td></tr><tr><td>基金淨值及折溢價</td><td>尚未整合</td></tr><tr><td>大盤趨勢</td><td>尚未整合</td></tr><tr><td>券商實際維持率</td><td>尚未連接</td></tr><tr><td>樣本外回測</td><td>尚未驗證</td></tr></tbody></table></section>
+<section class="card"><h2>資料完整性</h2><table><tbody><tr><td>市場價格K棒</td><td>已取得，需檢查延遲</td></tr><tr><td>基金淨值及折溢價</td><td>尚未整合</td></tr><tr><td>大盤趨勢</td><td>{esc(signal.get("market_trend") or "資料缺失／時間過舊")}</td></tr><tr><td>券商實際維持率</td><td>尚未連接</td></tr><tr><td>樣本外回測</td><td>尚未驗證</td></tr></tbody></table></section>
 <section class="card"><details><summary>查看原始量化資料（進階）</summary><h2>訊號 JSON</h2><pre>{esc(json.dumps(signal,ensure_ascii=False,indent=2))}</pre><h2>研究 JSON</h2><pre>{esc(json.dumps(research,ensure_ascii=False,indent=2))}</pre></details></section>
 <p class="footer">這份HTML是該次GitHub Actions執行的靜態快照，開啟後不會自動刷新；請下載最新一次執行的報告。投資決策應以券商及官方資料為準。</p>
 </main></body></html>"""
