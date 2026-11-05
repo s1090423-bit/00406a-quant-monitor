@@ -39,6 +39,7 @@ def evaluate(df, nav=None, nav_timestamp=None, market_trend=None, loan=None, cas
     if len(d)<20: reasons.append('INSUFFICIENT_HISTORY')
     if age<0 or age>cfg['max_quote_age_minutes']: reasons.append('STALE_PRICE')
     if nav is None or nav_timestamp is None: reasons.append('NAV_UNAVAILABLE')
+    elif not math.isfinite(nav) or nav<=0: reasons.append('INVALID_NAV')
     else:
         nt=pd.Timestamp(nav_timestamp)
         if nt.tzinfo is None: nt=nt.tz_localize('Asia/Taipei')
@@ -46,6 +47,7 @@ def evaluate(df, nav=None, nav_timestamp=None, market_trend=None, loan=None, cas
         else: premium=(price/nav-1)*100
     if market_trend is None: reasons.append('MARKET_UNAVAILABLE')
     if r['maintenance_pct'] is not None and r['maintenance_pct']<cfg['minimum_maintenance_pct']: reasons.append('MARGIN_GUARD')
+    if r['maintenance_pct'] is not None and r['maintenance_pct']<130: reasons.append('MARGIN_CALL_REFERENCE')
     if cash<cfg['reserve_cash']: reasons.append('RESERVE_GUARD')
     if acquired>=cfg['target_additional_shares']: reasons.append('POSITION_LIMIT')
     if not reasons:
@@ -59,7 +61,7 @@ def evaluate(df, nav=None, nav_timestamp=None, market_trend=None, loan=None, cas
     action='NO_NEW_BUY'
     if not reasons and score>=70:
         zone=next((z for z in cfg['zones'] if z['low']<=price<=z['high']),None)
-        affordable=max(0,int((cash-cfg['reserve_cash'])//(price*1000)))
+        affordable=max(0,int((cash-cfg['reserve_cash'])//(price*1000*(1+cfg['buy_fee_rate']))))
         lots=min(5 if score>=85 else 2,affordable,(cfg['target_additional_shares']-acquired)//1000)
         if zone and lots>0: action=f'REVIEW_BUY_{lots}_LOTS'
         else: action='WAIT_PRICE_ZONE_OR_CAPACITY'

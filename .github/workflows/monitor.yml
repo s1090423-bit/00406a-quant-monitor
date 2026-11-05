@@ -24,7 +24,11 @@ jobs:
           mkdir -p output
           python src/engine.py --mode signal --prices data/prices.csv > output/latest.json
           cat output/latest.json
+      - name: Price-only research comparison (not a trade signal)
+        run: python src/research.py --prices data/prices.csv > output/research.json
       - uses: actions/upload-artifact@v4
         with:
           name: signal-${{ github.run_id }}
-          path: output/latest.json
+          path: |
+            output/latest.json
+            output/research.json

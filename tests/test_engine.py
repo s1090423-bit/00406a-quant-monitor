@@ -27,3 +27,11 @@ def test_backtest_never_exceeds_budget():
     out=engine.backtest(sample())
     assert out['cash_remaining']>=engine.CONFIG['reserve_cash']
     assert out['new_shares']<=30000
+
+def test_invalid_nav_blocks():
+    d=sample(); out=engine.evaluate(d,nav=0,nav_timestamp=d.timestamp.iloc[-1],market_trend='up',now=d.timestamp.iloc[-1])
+    assert 'INVALID_NAV' in out['blocked_reasons']
+
+def test_below_130_reference_alert():
+    d=sample(); out=engine.evaluate(d,loan=200000,now=d.timestamp.iloc[-1])
+    assert 'MARGIN_CALL_REFERENCE' in out['blocked_reasons']
