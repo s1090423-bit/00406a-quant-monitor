@@ -1,1 +1,30 @@
-
+name: 00406A quant monitoring
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC 01:00 to 05:00 = Taipei 09:00 to 13:00, weekdays.
+    # GitHub Actions cron can be delayed; market-hours and freshness guards remain mandatory.
+    - cron: '0,30 1-4 * * 1-5'
+    - cron: '0 5 * * 1-5'
+permissions:
+  contents: read
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - name: Fetch market bars
+        run: python src/fetch.py
+      - name: Evaluate (fail closed without point-in-time NAV and market data)
+        run: |
+          mkdir -p output
+          python src/engine.py --mode signal --prices data/prices.csv > output/latest.json
+          cat output/latest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signal-${{ github.run_id }}
+          path: output/latest.json
